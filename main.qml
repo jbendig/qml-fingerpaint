@@ -8,6 +8,7 @@ Window {
     height: 640
     title: "QML Fingerpaint"
     visible: true
+    visibility: Window.FullScreen
 
     Canvas {
         id: canvas
