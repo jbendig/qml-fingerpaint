@@ -58,7 +58,7 @@ Window {
         anchors.left: parent.left
 
         Repeater {
-            model: ["red", "orange", "yellow", "green", "cyan", "blue", "purple", "white", "black"]
+            model: ["red", "orange", "yellow", "green", "cyan", "blue", "purple", "pink", "white", "lightgray", "darkgray", "black"]
 
             Rectangle {
                 color: "white"
