@@ -137,4 +137,10 @@ Window {
             }
         }
     }
+
+    MouseArea {
+        anchors.fill: parent
+        enabled: false
+        cursorShape: Qt.BlankCursor
+    }
 }
