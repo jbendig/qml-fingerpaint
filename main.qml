@@ -87,64 +87,163 @@ Window {
         onUpdated: paintTouchPoints(touchPoints)
     }
 
-    ExclusiveGroup {
-        id: brushColorExclusiveGroup
-    }
-
-    Row {
-        id: brushColorColumn
-        anchors.bottom: parent.bottom
+    //Side menu bar for adjusting the brush.
+    Rectangle {
+        id: menuBar
         anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: parent.width / 6
+        color: "lightgray"
 
-        Repeater {
-            model: ["red", "orange", "yellow", "green", "cyan", "blue", "purple", "pink", "white", "lightgray", "darkgray", "black"]
+        property bool reveal: false
 
+        onRevealChanged: revealAnimation.restart()
+
+        function toggleVisibility() {
+            menuBar.reveal = !menuBar.reveal;
+        }
+
+        PropertyAnimation {
+            id: revealAnimation
+            target: menuBar
+            property: "anchors.leftMargin"
+            to: menuBar.reveal ? 0 : -menuBar.width
+        }
+
+        //Prevent painting under the bar.
+        MouseArea {
+            anchors.fill: parent
+        }
+
+        Column {
+            anchors.topMargin: 50
+            anchors.fill: parent
+            spacing: 5
+
+            Text {
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+                font.pixelSize: 22
+                text: "Brush Color"
+                color: "black"
+            }
+
+            ExclusiveGroup {
+                id: brushColorExclusiveGroup
+            }
+
+            Grid {
+                id: brushColorGrid
+                anchors.horizontalCenter: parent.horizontalCenter
+                columns: (parent.width - 20) / _COLOR_BUTTON_SIZE
+                spacing: 2
+
+                readonly property int _COLOR_BUTTON_SIZE: 75
+
+                Repeater {
+                    model: ["red", "orange", "yellow", "green", "cyan", "blue", "purple", "pink", "white", "lightgray", "darkgray", "black"]
+
+                    Rectangle {
+                        color: "white"
+                        width: brushColorGrid._COLOR_BUTTON_SIZE
+                        height: brushColorGrid._COLOR_BUTTON_SIZE
+                        border.width: checked ? 3 : 1
+                        border.color: "black"
+
+                        property color brushColor: modelData
+                        property bool checked: index == 0
+                        property ExclusiveGroup exclusiveGroup: brushColorExclusiveGroup
+
+                        onExclusiveGroupChanged: {
+                            if(exclusiveGroup)
+                                exclusiveGroup.bindCheckable(this);
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: 5
+                            color: modelData
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+
+                            onClicked: parent.checked = true
+                        }
+                    }
+                }
+            }
+
+            //Spacer
             Rectangle {
-                color: "white"
-                width: 50
+                width: 1
                 height: 50
-                border.width: checked ? 3 : 1
-                border.color: "black"
+                color: "#00000000"
+            }
 
-                property color brushColor: modelData
-                property bool checked: index == 0
-                property ExclusiveGroup exclusiveGroup: brushColorExclusiveGroup
+            Text {
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+                font.pixelSize: 22
+                text: "Brush Size"
+                color: "black"
+            }
 
-                onExclusiveGroupChanged: {
-                    if(exclusiveGroup)
-                        exclusiveGroup.bindCheckable(this);
-                }
+            Slider {
+                id: brushSizeSlider
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+                anchors.right: parent.right
+                anchors.rightMargin: anchors.leftMargin
+                minimumValue: 10
+                maximumValue: 200
+                value: 50
+                height: 50
 
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: 5
-                    color: modelData
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-
-                    onClicked: parent.checked = true
-                }
+                onValueChanged: brushSizePreviewAnimation.restart()
             }
         }
     }
 
-    Slider {
-        id: brushSizeSlider
-        anchors.bottom: parent.bottom
-        anchors.left: brushColorColumn.right
+    //Menu button to toggle the side menu's visibility.
+    Rectangle {
         anchors.right: parent.right
-        anchors.leftMargin: 5
-        anchors.rightMargin: anchors.leftMargin
-        minimumValue: 10
-        maximumValue: 200
-        value: 50
-        height: 50
+        anchors.rightMargin: 5
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 5
+        width: 80
+        height: 80
+        radius: width
+        border.color: "black"
+        border.width: 2
+        color: "black"
 
-        onValueChanged: brushSizePreviewAnimation.restart()
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width - 4
+            height: parent.height - 4
+            radius: width
+            border.color: "white"
+            border.width: 2
+            color: "#00000000"
+        }
+
+        Text {
+            anchors.centerIn: parent
+            color: "white"
+            font.pixelSize: 26
+            text: "Menu"
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: menuBar.toggleVisibility()
+        }
     }
 
+    //Preview of the brush size drawn in the center of the canvas whenever the
+    //brush size is changed.
     Rectangle {
         id: brushSizePreview
         anchors.centerIn: parent
@@ -164,7 +263,7 @@ Window {
             }
 
             PauseAnimation {
-                duration: 10
+                duration: 1000
             }
 
             NumberAnimation {
@@ -176,6 +275,7 @@ Window {
         }
     }
 
+    //Hack to hide the mouse cursor.
     MouseArea {
         anchors.fill: parent
         enabled: false
