@@ -10,23 +10,43 @@ Window {
     visible: true
     visibility: Window.FullScreen
 
+    //Draw optional background image if available in the current directory.
+    Image {
+        id: backgroundImage
+        source: "file:///" + currentDirectoryPath + "/background.png"
+        opacity: 0.0
+
+        onStatusChanged: {
+            if(status == Image.Ready)
+                canvas.paintBackground = true;
+        }
+    }
+
     Canvas {
         id: canvas
         anchors.fill: parent
 
+        property bool paintBackground: false
         property variant paintPoints: []
         property color brushColor: brushColorExclusiveGroup.current.brushColor
         property int brushRadius: brushSizeSlider.value
         readonly property real _BRUSH_FLOW: brushRadius / 4.0
 
+        onPaintBackgroundChanged: requestPaint();
+
         onPaint: {
             var context = getContext("2d");
-
             function drawCircle(x,y) {
                 context.beginPath();
                 context.fillStyle = brushColor;
                 context.arc(x, y, brushRadius, 0, 2 * Math.PI);
                 context.fill();
+            }
+
+            if(paintBackground)
+            {
+                paintBackground = false;
+                context.drawImage(backgroundImage, 0, 0);
             }
 
             //Paint circles using the current brush where ever the user touched
