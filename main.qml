@@ -17,17 +17,35 @@ Window {
         property variant paintPoints: []
         property color brushColor: brushColorExclusiveGroup.current.brushColor
         property int brushRadius: brushSizeSlider.value
+        readonly property real _BRUSH_FLOW: brushRadius / 4.0
 
         onPaint: {
             var context = getContext("2d");
 
-            //Paint circles using the current brush where ever the user touched the canvas.
-            for(var x = 0;x < paintPoints.length;x++)
-            {
+            function drawCircle(x,y) {
                 context.beginPath();
                 context.fillStyle = brushColor;
-                context.arc(paintPoints[x].x, paintPoints[x].y, brushRadius, 0, 2 * Math.PI);
+                context.arc(x, y, brushRadius, 0, 2 * Math.PI);
                 context.fill();
+            }
+
+            //Paint circles using the current brush where ever the user touched
+            //the canvas. Circles are drawn every few pixels from the each
+            //touch points old location to its new location.
+            for(var x = 0;x < paintPoints.length;x++)
+            {
+                var paintPoint = paintPoints[x];
+                var change = Qt.vector2d(paintPoint.x, paintPoint.y).minus(Qt.vector2d(paintPoint.previousX, paintPoint.previousY));
+                var newPointCount = Math.max(Math.round(change.length() / _BRUSH_FLOW), 1);
+                var changeNormal = change.normalized();
+                for(var y = 0;y < newPointCount - 1;y++)
+                {
+                    var drawX = paintPoint.previousX + changeNormal.x * (y + 1) * _BRUSH_FLOW
+                    var drawY = paintPoint.previousY + changeNormal.y * (y + 1) * _BRUSH_FLOW;
+                    drawCircle(drawX,drawY);
+                }
+
+                drawCircle(paintPoint.x, paintPoint.y);
             }
 
             paintPoints = [];
