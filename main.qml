@@ -164,7 +164,7 @@ Window {
             }
 
             PauseAnimation {
-                duration: 2000
+                duration: 10
             }
 
             NumberAnimation {
